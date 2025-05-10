@@ -7,61 +7,65 @@
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      background: #f2f2f2;
-    }
-    h2 {
-      color: #333;
+      background: #f0f0f0;
     }
     button {
-      padding: 10px 20px;
+      padding: 10px 15px;
       font-size: 16px;
+      margin-bottom: 15px;
     }
-    pre {
-      background: #fff;
-      padding: 10px;
-      border: 1px solid #ccc;
-      max-height: 400px;
-      overflow-y: auto;
-      white-space: pre-wrap;
+    textarea {
+      width: 100%;
+      height: 400px;
+      font-family: monospace;
     }
   </style>
 </head>
 <body>
-  <h2>Inclined Plane Position Generator</h2>
+  <h2>Inclined Plane Position Data (CSV Format)</h2>
   <button onclick="generateData()">Generate Data</button>
-  <pre id="output"></pre>
+  <textarea id="output" readonly></textarea>
 
   <script>
     function generateData() {
       const g = 9.81;
       const thetaDeg = 20 + Math.random() * 20; // 20 to 40 degrees
       const thetaRad = thetaDeg * Math.PI / 180;
-      const a = g * Math.sin(thetaRad); // acceleration down the incline
+      const a = g * Math.sin(thetaRad);
 
-      const tValues = Array.from({ length: 25 }, (_, i) => i); // t = 0 to 24 s
+      const dataPoints = 25;
+
+      // Choose a maximum time where the final position is still positive
+      // We'll calculate the final time so that position only drops by about 1.4 meters (e.g., from 1.5 to ~0.1)
+      const maxDrop = 1.4;
+      const tMax = Math.sqrt((2 * maxDrop) / a);
+      const tValues = Array.from({ length: dataPoints }, (_, i) => i * tMax / (dataPoints - 1));
+
+      // Base position: y(t) = -1/2 * a * t^2 + h0
       const rawPositions = tValues.map(t => -0.5 * a * t * t);
-
       const minY = Math.min(...rawPositions);
-      const h0 = Math.abs(minY) + 1; // ensure all values are positive
+      const h0 = 1.5 - rawPositions[0]; // So y(0) = 1.5 exactly
 
-      // Add random noise with std deviation <8% of each value
-      const noisyPositions = rawPositions.map((y, i) => {
-        const cleanY = y + h0;
-        const stdDev = 0.08 * cleanY;
+      const cleanPositions = rawPositions.map(y => y + h0);
+
+      // Add noise <8% of each value
+      const noisyPositions = cleanPositions.map(pos => {
+        const stdDev = 0.08 * pos;
         const noise = randn_bm() * stdDev;
-        return +(cleanY + noise).toFixed(2);
+        return +(pos + noise).toFixed(4); // 4 decimal places for precision
       });
 
-      const output = `Angle (theta): ${thetaDeg.toFixed(2)}°\n\nTime(s) | Position(m)\n------------------------\n` +
-        tValues.map((t, i) => `${t}s\t| ${noisyPositions[i]} m`).join("\n");
+      // Format CSV output: time,position
+      let output = `Time,Position\n`;
+      output += tValues.map((t, i) => `${t.toFixed(4)},${noisyPositions[i]}`).join("\n");
 
-      document.getElementById('output').textContent = output;
+      document.getElementById("output").value = output;
     }
 
-    // Normal distribution random number generator
+    // Normal distribution generator
     function randn_bm() {
       let u = 0, v = 0;
-      while (u === 0) u = Math.random(); // avoid 0
+      while (u === 0) u = Math.random();
       while (v === 0) v = Math.random();
       return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
     }
