@@ -26,49 +26,47 @@
   <button onclick="generateData()">Generate Data</button>
   <textarea id="output" readonly></textarea>
 
-  <script>
-    function generateData() {
-      const g = 9.81;
-      const thetaDeg = 20 + Math.random() * 20; // 20 to 40 degrees
-      const thetaRad = thetaDeg * Math.PI / 180;
-      const a = g * Math.sin(thetaRad);
+<script>
+  function generateData() {
+    const g = 9.81;
+    const thetaDeg = 20 + Math.random() * 20; // 20° to 40°
+    const thetaRad = thetaDeg * Math.PI / 180;
+    const a = g * Math.sin(thetaRad);
 
-      const dataPoints = 25;
+    const dataPoints = 25;
 
-      // Choose a maximum time where the final position is still positive
-      // We'll calculate the final time so that position only drops by about 1.4 meters (e.g., from 1.5 to ~0.1)
-      const maxDrop = 1.4;
-      const tMax = Math.sqrt((2 * maxDrop) / a);
-      const tValues = Array.from({ length: dataPoints }, (_, i) => i * tMax / (dataPoints - 1));
+    // Pick time range so the object descends ~1.4m (to stay above zero)
+    const maxDrop = 1.4;
+    const tMax = Math.sqrt((2 * maxDrop) / a);
+    const tValues = Array.from({ length: dataPoints }, (_, i) => i * tMax / (dataPoints - 1));
 
-      // Base position: y(t) = -1/2 * a * t^2 + h0
-      const rawPositions = tValues.map(t => -0.5 * a * t * t);
-      const minY = Math.min(...rawPositions);
-      const h0 = 1.5 - rawPositions[0]; // So y(0) = 1.5 exactly
+    // Calculate base position
+    const rawPositions = tValues.map(t => -0.5 * a * t * t);
+    const h0 = 1.5 - rawPositions[0]; // ensure y(0) = 1.5
+    const cleanPositions = rawPositions.map(y => y + h0);
 
-      const cleanPositions = rawPositions.map(y => y + h0);
+    // Add random noise <8%
+    const noisyPositions = cleanPositions.map(pos => {
+      const stdDev = 0.08 * pos;
+      const noise = randn_bm() * stdDev;
+      return +(pos + noise).toFixed(4);
+    });
 
-      // Add noise <8% of each value
-      const noisyPositions = cleanPositions.map(pos => {
-        const stdDev = 0.08 * pos;
-        const noise = randn_bm() * stdDev;
-        return +(pos + noise).toFixed(4); // 4 decimal places for precision
-      });
+    // Construct output
+    let output = `Angle: ${thetaDeg.toFixed(2)} degrees\n\n`;
+    output += `Time,Position\n`;
+    output += tValues.map((t, i) => `${t.toFixed(4)},${noisyPositions[i]}`).join("\n");
 
-      // Format CSV output: time,position
-      let output = `Time,Position\n`;
-      output += tValues.map((t, i) => `${t.toFixed(4)},${noisyPositions[i]}`).join("\n");
+    document.getElementById("output").value = output;
+  }
 
-      document.getElementById("output").value = output;
-    }
-
-    // Normal distribution generator
-    function randn_bm() {
-      let u = 0, v = 0;
-      while (u === 0) u = Math.random();
-      while (v === 0) v = Math.random();
-      return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-    }
-  </script>
+  // Normal distribution noise generator
+  function randn_bm() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+</script>
 </body>
 </html>
