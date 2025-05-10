@@ -14,8 +14,7 @@ This simple web-based tool simulates position data for an object moving down an 
 ## Format of Output
 Angle: XX.XX degrees
 
-Time,Position
-
+Time (s),Position (m)
 0.0000,1.5021
 
 0.0206,1.4932
