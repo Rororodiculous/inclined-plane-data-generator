@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Inclined Plane Data Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    h2 {
+      color: #333;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    pre {
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h2>Inclined Plane Position Generator</h2>
+  <button onclick="generateData()">Generate Data</button>
+  <pre id="output"></pre>
+
+  <script>
+    function generateData() {
+      const g = 9.81;
+      const thetaDeg = 20 + Math.random() * 20; // 20 to 40 degrees
+      const thetaRad = thetaDeg * Math.PI / 180;
+      const a = g * Math.sin(thetaRad); // acceleration down the incline
+
+      const tValues = Array.from({ length: 25 }, (_, i) => i); // t = 0 to 24 s
+      const rawPositions = tValues.map(t => -0.5 * a * t * t);
+
+      const minY = Math.min(...rawPositions);
+      const h0 = Math.abs(minY) + 1; // ensure all values are positive
+
+      // Add random noise with std deviation <8% of each value
+      const noisyPositions = rawPositions.map((y, i) => {
+        const cleanY = y + h0;
+        const stdDev = 0.08 * cleanY;
+        const noise = randn_bm() * stdDev;
+        return +(cleanY + noise).toFixed(2);
+      });
+
+      const output = `Angle (theta): ${thetaDeg.toFixed(2)}°\n\nTime(s) | Position(m)\n------------------------\n` +
+        tValues.map((t, i) => `${t}s\t| ${noisyPositions[i]} m`).join("\n");
+
+      document.getElementById('output').textContent = output;
+    }
+
+    // Normal distribution random number generator
+    function randn_bm() {
+      let u = 0, v = 0;
+      while (u === 0) u = Math.random(); // avoid 0
+      while (v === 0) v = Math.random();
+      return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+  </script>
+</body>
+</html>
