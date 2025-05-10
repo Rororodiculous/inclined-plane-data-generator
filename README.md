@@ -25,7 +25,7 @@ Time,Position
 3. Copy and paste the output into a spreadsheet or save it as a `.csv` file
 
 ## Access the Tool
-🔗 [Inclined Plane Data Generator Webpage](https://yourusername.github.io/inclined-plane-data-generator/)
+🔗 [Inclined Plane Data Generator Webpage](https://Rororodiculous.github.io/inclined-plane-data-generator/)
 
 ## License
 This project is open source and available under the MIT License.
