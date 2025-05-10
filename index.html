@@ -53,8 +53,8 @@
     });
 
     // Construct output
-    let output = `Angle: ${thetaDeg.toFixed(2)} degrees\n\n`;
-    output += `Time,Position\n`;
+    let output = `Angle (deg), ${thetaDeg.toFixed(2)}\n\n`;
+    output += `Time (s),Position (m)\n`;
     output += tValues.map((t, i) => `${t.toFixed(4)},${noisyPositions[i]}`).join("\n");
 
     document.getElementById("output").value = output;
